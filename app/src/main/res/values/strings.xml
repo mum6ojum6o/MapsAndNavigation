@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Mavigate</string>
+    <string name="yes" translatable="true">yes</string>
+    <string name="request_gps_message_in_dialog" translatable="true">This app requires GPS to function properly. Would you wan to enable GPS?</string>
+</resources>
