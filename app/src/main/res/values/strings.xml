@@ -2,4 +2,8 @@
     <string name="app_name">Mavigate</string>
     <string name="yes" translatable="true">yes</string>
     <string name="request_gps_message_in_dialog" translatable="true">This app requires GPS to function properly. Would you wan to enable GPS?</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="search_hint" translatable="true">Enter destination</string>
 </resources>

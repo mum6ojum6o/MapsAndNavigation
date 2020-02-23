@@ -13,6 +13,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -25,25 +26,38 @@ import static com.mumbojumbo.mapsandnav.utils.Constants.ERROR_DIALOG_MSG;
 import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ACCESS_FINE_LOCATION;
 import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ENABLE_GPS;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
     private static final String TAG="MainActivity";
     private boolean mLocationPermissionGranted;
+    private MapFragment mMapFragment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mMapFragment =  MapFragment.newInstance(null,null,this);
 
     }
-@Override
-protected void onResume(){
+    @Override
+    protected void onResume(){
         super.onResume();
-        if(checkMapServices()){
+
+        if(checkMapServices() && mLocationPermissionGranted){
             Log.d(TAG,"All Services and Permissions accounted for. Resuming App");
+            initMapFragment();
         }else{
             Log.d(TAG,"Permission not accounted for.");
             getLocationPermission();
+            if(mLocationPermissionGranted) {
+                initMapFragment();
+            }
         }
-}
+    }
+
+    private void initMapFragment(){
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,mMapFragment)
+                .commit();
+    }
+
     private boolean checkMapServices(){
         if(areServicesOk()){
            if(areMapsEnabled()){
@@ -137,4 +151,13 @@ protected void onResume(){
     }
 
 
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
 }
+//TODO Internet Connectivity check
+//TODO Config change handling
+// TODO Navigation
+// TODO Display search location info
+// TODO Display Route Metadat (distance, time, etc)
