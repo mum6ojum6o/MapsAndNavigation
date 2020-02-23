@@ -2,7 +2,9 @@ package com.mumbojumbo.mapsandnav;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -25,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,6 +51,7 @@ import com.google.maps.PendingResult;
 import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
+import com.mumbojumbo.mapsandnav.model.PolylineData;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -66,7 +70,8 @@ import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ACCESS_FINE_
  * create an instance of this fragment.
  */
 public class MapFragment extends Fragment implements OnMapReadyCallback
-        ,View.OnClickListener {
+        ,View.OnClickListener
+        , GoogleMap.OnPolylineClickListener{
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
@@ -78,7 +83,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private Location mUsersLastKnownLocation;
     private boolean mLocationPermissionGranted;
     private EditText mSearchEditText;
-
+    private RelativeLayout mSearchedAddressInfo;
     private String mParam1;
     private String mParam2;
     private FloatingActionButton mFloatingActionButton;
@@ -87,6 +92,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private Address mDestinationAddress;
     private OnFragmentInteractionListener mListener;
     private GeoApiContext mGeoApiContext;
+    private String mSearchedAddress;
+    private List<PolylineData> mPolyLineData = new ArrayList<>();
     public MapFragment(OnFragmentInteractionListener aContext) {
         // Required empty public constructor
         this.mListener = aContext;
@@ -174,6 +181,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         mFloatingActionButton = view.findViewById(R.id.floating_action_button);
         mDirectionsFloatingActionButton = view.findViewById(R.id.floating_action_button_directions);
         mSearchEditText = view.findViewById(R.id.et_search);
+        mSearchedAddressInfo = view.findViewById(R.id.rl_search_address_info_layout);
         initiateGoogleMaps(savedInstanceState);
         mFloatingActionButton.setOnClickListener(this);
         mDirectionsFloatingActionButton.setOnClickListener(this);
@@ -223,6 +231,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         mGoogleMap = googleMap;
         googleMap.setMyLocationEnabled(true);
         getlastKnownLocation();
+        mGoogleMap.setOnPolylineClickListener(this);
         initSearchEditText();
     }
 
@@ -255,6 +264,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 new LatLng(topBoundary,rightBoundary)
          );
         if(displayMarker){
+            setSearchAddressInfo();
             mGoogleMap.addMarker(new MarkerOptions()
                     .position(new LatLng(latitude,longitude)).title("Marker"));
             mDirectionsFloatingActionButton.setVisibility(View.VISIBLE);
@@ -269,11 +279,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         switch(v.getId()){
             case R.id.floating_action_button:
                 resetMap();
+                mSearchedAddressInfo.setVisibility(View.INVISIBLE);
                 setCameraView(mUsersLastKnownLocation.getLatitude(),
                         mUsersLastKnownLocation.getLongitude(),false);
                 break;
             case R.id.floating_action_button_directions:
                 mDirectionsFloatingActionButton.setVisibility(View.INVISIBLE);
+                mSearchedAddressInfo.setVisibility(View.INVISIBLE);
                 LatLng from = new LatLng(mUsersLastKnownLocation.getLatitude()
                         ,mUsersLastKnownLocation.getLongitude());
                 LatLng to = new LatLng(mDestinationAddress.getLatitude(),mDestinationAddress.getLongitude());
@@ -288,8 +300,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
 
     }
 
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+        for(PolylineData polylineData: mPolyLineData){
+            Log.d(TAG, "onPolylineClick: toString: " + polylineData.toString());
+            if(polyline.getId().equals(polylineData.getPolyline().getId())){
+                polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.blue));
+                polylineData.getPolyline().setZIndex(1);
+            }
+            else{
+                polylineData.getPolyline().setColor(ContextCompat.getColor(getActivity(), R.color.darkGrey));
+                polylineData.getPolyline().setZIndex(0);
+            }
+        }
+    }
 
-    /**
+
+    /********
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
      * to the activity and potentially other fragments contained in that
@@ -315,6 +342,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                         actionId == EditorInfo.IME_ACTION_SEARCH) {
                      //execute search
                     mGoogleMap.clear();
+                    mSearchedAddressInfo.setVisibility(View.INVISIBLE);
                     searchEnteredLocation();
                 }
                 return false;
@@ -336,6 +364,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
+                if( result.routes==null|| result.routes.length==0){
+//                    Toast.makeText(getContext(),"Sorry! No route possible by Land!", Toast.LENGTH_LONG).show();
+                    displayNoPossibleRoutesDialog();
+
+                    return;
+                }
                 Log.d(TAG, "processing Direction: routes:"+result.routes[0].toString());
                 Log.d(TAG, "processing Direction: duration:"+result.routes[0].legs[0].duration);
                 Log.d(TAG, "processing Direction: duration:"+result.routes[0].legs[0].distance);
@@ -353,7 +387,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
 
     private void searchEnteredLocation(){
         Log.d(TAG,"searchEnteredLocation:");
-        String searchString = mSearchEditText.getText().toString();
+         String searchString  = mSearchEditText.getText().toString();
         Geocoder geoCoder = new Geocoder(getActivity());
         List<Address> addressList = new ArrayList<>();
 
@@ -379,6 +413,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             public void run() {
                 Log.d(TAG,"addRouteLines->run(): routes length:"+result.routes.length);
                 mGoogleMap.clear();
+
+                if(mPolyLineData.size()>0){
+                    mPolyLineData.clear();
+                }
+
+
                 if(mDestinationAddress!=null){
                     mGoogleMap.addMarker(new MarkerOptions()
                             .position(new LatLng(mDestinationAddress.getLatitude(),
@@ -395,6 +435,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                     Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(decodedPath));
                     polyline.setColor(ContextCompat.getColor(getActivity(),R.color.darkGrey));
                     polyline.setClickable(true);
+                    mPolyLineData.add(new PolylineData(polyline,route.legs[0]));
                     calculateMapBoundary();
                     mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
                             mMapBoundary,0));
@@ -408,12 +449,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         if(mUsersLastKnownLocation==null||mDestinationAddress==null)
             return;
 
+        double latDiff = Math.abs(mUsersLastKnownLocation.getLatitude() - mDestinationAddress.getLatitude());
+        double longDiff = Math.abs(mUsersLastKnownLocation.getLongitude()-mDestinationAddress.getLongitude());
+        double stretcher = Math.max(latDiff,longDiff);
+
+
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(new LatLng(mUsersLastKnownLocation.getLatitude(),
-                mUsersLastKnownLocation.getLongitude()-1))
-        .include(new LatLng(mDestinationAddress.getLatitude(),
-                mDestinationAddress.getLongitude()+1));
+        builder.include(new LatLng(mUsersLastKnownLocation.getLatitude()-(stretcher/4),
+                mUsersLastKnownLocation.getLongitude()-(stretcher/4)))
+        .include(new LatLng(mDestinationAddress.getLatitude()+(stretcher/2),
+                mDestinationAddress.getLongitude()+(stretcher/2)));
         mMapBoundary = builder.build();
+
+    }
+
+    private void setSearchAddressInfo(){
+        RelativeLayout rl = getActivity().findViewById(R.id.rl_search_address_info_layout);
+        rl.setVisibility(View.VISIBLE);
+        TextView searchInfo = getActivity().findViewById(R.id.tv_destination_info);
+        StringBuilder sb = new StringBuilder();
+        sb.append(mDestinationAddress.getSubThoroughfare()!=null?mDestinationAddress.getSubThoroughfare()+" ":"");
+        sb.append(mDestinationAddress.getThoroughfare()!=null?mDestinationAddress.getThoroughfare()+", ":"");
+        sb.append(mDestinationAddress.getLocality()!=null?mDestinationAddress.getLocality()+", ":"");
+        sb.append(mDestinationAddress.getAdminArea()!=null?mDestinationAddress.getAdminArea()+", ":"");
+        sb.append(mDestinationAddress.getPostalCode()!=null?" - "+ mDestinationAddress.getPostalCode()+", ":"");
+        sb.append(mDestinationAddress.getCountryName());
+        searchInfo.setText(sb.toString());
+    }
+
+
+    //TODO - determine why is the alert dialog not rendering???
+    private void displayNoPossibleRoutesDialog(){
+        new Handler(Looper.getMainLooper()).post(new Runnable(){
+
+            @Override
+            public void run() {
+                Log.d(TAG,"Rendering AlertDialog");
+                AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+                dialogBuilder.setMessage(getString(R.string.no_possible_routes)).setTitle("Ooops!");
+                dialogBuilder.setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Log.d(TAG,"User clicked Cancel");
+                    }
+                });
+                dialogBuilder.create();
+                dialogBuilder.show();
+            }
+        });
 
     }
 }
