@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -89,6 +90,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private String mParam2;
     private FloatingActionButton mFloatingActionButton;
     private FloatingActionButton mDirectionsFloatingActionButton;
+    private FloatingActionButton mNavigationFloatingActionButton;
     private MapView mMapView;
     private Address mDestinationAddress;
     private OnFragmentInteractionListener mListener;
@@ -185,11 +187,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         mMapView = view.findViewById(R.id.mv_map_view);
         mFloatingActionButton = view.findViewById(R.id.floating_action_button);
         mDirectionsFloatingActionButton = view.findViewById(R.id.floating_action_button_directions);
+        mNavigationFloatingActionButton = view.findViewById(R.id.floating_action_button_start_navigation);
         mSearchEditText = view.findViewById(R.id.et_search);
-        //mSearchedAddressInfo = view.findViewById(R.id.rl_search_address_info_layout);
         initiateGoogleMaps(savedInstanceState);
         mFloatingActionButton.setOnClickListener(this);
         mDirectionsFloatingActionButton.setOnClickListener(this);
+        mFloatingActionButton.setOnClickListener(this);
+        mNavigationFloatingActionButton.setOnClickListener(this);
         return view;
     }
 
@@ -304,12 +308,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 break;
             case R.id.floating_action_button_directions:
                 mDirectionsFloatingActionButton.setVisibility(View.INVISIBLE);
-               // mSearchedAddressInfo.setVisibility(View.INVISIBLE);
+
                 LatLng from = new LatLng(mUsersLastKnownLocation.getLatitude()
                         ,mUsersLastKnownLocation.getLongitude());
                 LatLng to = new LatLng(mDestinationAddress.getLatitude(),mDestinationAddress.getLongitude());
 
                 processDirections(from,to);
+                break;
+            case R.id.floating_action_button_start_navigation:
+                launchGoogleMapsForNavigation();
                 break;
         }
     }
@@ -432,6 +439,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     }
     private void addRouteLines(final DirectionsResult result ){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @SuppressLint("RestrictedApi")
             @Override
             public void run() {
                 Log.d(TAG,"addRouteLines->run(): routes length:"+result.routes.length);
@@ -440,7 +448,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 if(mPolyLineData.size()>0){
                     mPolyLineData.clear();
                 }
-
+                mNavigationFloatingActionButton.setVisibility(View.VISIBLE);
 
                 if(mDestinationAddress!=null){
                     mMarker = mGoogleMap.addMarker(new MarkerOptions()
@@ -545,6 +553,36 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         boolean routesRequested = savedInstanceState.getBoolean("Routes_Requested");
         this.routesRequested = routesRequested;
     }
+    private void launchGoogleMapsForNavigation(){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Open Google Maps?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        String latitude = String.valueOf(mMarker.getPosition().latitude);
+                        String longitude = String.valueOf(mMarker.getPosition().longitude);
+                        Uri gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                        mapIntent.setPackage("com.google.android.apps.maps");
 
+                        try{
+                            if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                                startActivity(mapIntent);
+                            }
+                        }catch (NullPointerException e){
+                            Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                            Toast.makeText(getActivity(), "Couldn't open map", Toast.LENGTH_SHORT).show();
+                        }
+
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
 
 }
