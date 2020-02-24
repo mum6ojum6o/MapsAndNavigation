@@ -84,7 +84,7 @@
         app:layout_constraintTop_toTopOf="@+id/floating_action_button"
         app:srcCompat="@drawable/ic_directions" />
 
-    <RelativeLayout
+    <!--<RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/white_border"
@@ -106,7 +106,7 @@
             android:maxWidth="175dp"
             android:textColor="#000000"
             tools:text="Street Name, Random St, Amazing Country" />
-    </RelativeLayout>
+    </RelativeLayout> -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
