@@ -60,8 +60,12 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mumbojumbo.mapsandnav.utils.Constants.DESTINATION_ADDRESS_KEY;
+import static com.mumbojumbo.mapsandnav.utils.Constants.LAST_KNOWN_LOCATION_KEY;
 import static com.mumbojumbo.mapsandnav.utils.Constants.MAPVIEW_BUNDLE_KEY;
 import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ACCESS_FINE_LOCATION;
+import static com.mumbojumbo.mapsandnav.utils.Constants.ROUTES_REQUESTED_KEY;
+import static com.mumbojumbo.mapsandnav.utils.Constants.USER_ENTERED_ADDRESS_KEY;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -324,7 +328,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private void resetMap(){
         mSearchEditText.setText("");
         mGoogleMap.clear();
-        mMarker.remove();
+        if(mMarker!=null)
+            mMarker.remove();
 
     }
 
@@ -530,27 +535,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     public void onSaveInstanceState(Bundle bundle){
         super.onSaveInstanceState(bundle);
         if(mDestinationAddress!=null)
-            bundle.putParcelable("Destination Address",mDestinationAddress);
+            bundle.putParcelable(DESTINATION_ADDRESS_KEY,mDestinationAddress);
         if(mSearchEditText.getText()!=null && !mSearchEditText.getText().toString().isEmpty())
-            bundle.putString("User_Entered_Address",mSearchEditText.getText().toString());
+            bundle.putString(USER_ENTERED_ADDRESS_KEY,mSearchEditText.getText().toString());
         if(mPolyLineData.size()>0) {
             //bundle.putParcelableArrayList("PolyLineData",mPolyLineData);
-            bundle.putBoolean("Routes_Requested",true);
+            bundle.putBoolean(ROUTES_REQUESTED_KEY,true);
         }
         if(mUsersLastKnownLocation!=null){
-            bundle.putParcelable("Last_Known_Location",mUsersLastKnownLocation);
+            bundle.putParcelable(LAST_KNOWN_LOCATION_KEY,mUsersLastKnownLocation);
         }
 
     }
     private void restoreState(Bundle savedInstanceState){
-        Address address = savedInstanceState.getParcelable("Destination Address");
+        Address address = savedInstanceState.getParcelable(DESTINATION_ADDRESS_KEY);
         mDestinationAddress = address;
 
-        mUsersLastKnownLocation = savedInstanceState.getParcelable("Last_Known_Location");
+        mUsersLastKnownLocation = savedInstanceState.getParcelable(LAST_KNOWN_LOCATION_KEY);
         if(mDestinationAddress!=null) restoreState=true;
-        String text = savedInstanceState.getString("User_Entered_Address");
+        String text = savedInstanceState.getString(USER_ENTERED_ADDRESS_KEY);
         mSearchEditText.setText(text);
-        boolean routesRequested = savedInstanceState.getBoolean("Routes_Requested");
+        boolean routesRequested = savedInstanceState.getBoolean(ROUTES_REQUESTED_KEY);
         this.routesRequested = routesRequested;
     }
     private void launchGoogleMapsForNavigation(){
