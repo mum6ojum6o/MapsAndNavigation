@@ -18,9 +18,8 @@
       <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/javaCompile/classAnalysis.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/javaCompile/classAnalysis.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/5.4.1/javaCompile/javaCompile.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/5.4.1/javaCompile/javaCompile.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -53,8 +52,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="279">
-              <caret line="189" column="106" selection-start-line="189" selection-start-column="106" selection-end-line="189" selection-end-column="106" />
+            <state relative-caret-position="92">
+              <caret line="331" column="12" selection-start-line="331" selection-start-column="12" selection-end-line="331" selection-end-column="12" />
               <folding>
                 <element signature="e#7128#7167#0" expanded="true" />
                 <element signature="e#7255#7294#0" expanded="true" />
@@ -74,24 +73,6 @@
             </state>
           </provider>
           <provider editor-type-id="android-designer2" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://D:/Android/Sdk/sources/android-28/android/os/Looper.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="183">
-              <caret line="196" selection-start-line="196" selection-end-line="196" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://D:/Android/Sdk/sources/android-28/com/android/internal/os/RuntimeInit.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="300">
-              <caret line="497" selection-start-line="497" selection-end-line="497" />
-            </state>
-          </provider>
         </entry>
       </file>
     </leaf>
@@ -125,7 +106,6 @@
       <list>
         <option value="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/BlankFragment.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/drawable/white_border.xml" />
         <option value="$PROJECT_DIR$/app/build.gradle" />
@@ -134,6 +114,7 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/model/PolylineData.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MainActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml" />
+        <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java" />
       </list>
     </option>
@@ -176,6 +157,18 @@
               <item name="java" type="edd41e36:AndroidSourceTypeNode" />
               <item name="mapsandnav" type="cbb59c9e:AndroidPsiDirectoryNode" />
               <item name="model" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Mavigate" type="1abcf292:AndroidViewProjectNode" />
+              <item name="app" type="feadf853:AndroidModuleNode" />
+              <item name="java" type="edd41e36:AndroidSourceTypeNode" />
+              <item name="mapsandnav" type="cbb59c9e:AndroidPsiDirectoryNode" />
+              <item name="utils" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Mavigate" type="1abcf292:AndroidViewProjectNode" />
+              <item name="app" type="feadf853:AndroidModuleNode" />
+              <item name="java (generated)" type="edd41e36:AndroidSourceTypeNode" />
             </path>
             <path>
               <item name="Mavigate" type="1abcf292:AndroidViewProjectNode" />
@@ -360,8 +353,8 @@
     <editor active="true" />
     <layout>
       <window_info id="Captures" order="0" side_tool="true" weight="0.25" />
-      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49889624" visible="true" weight="0.18489583" />
-      <window_info id="Structure" order="2" sideWeight="0.50110376" side_tool="true" weight="0.375" />
+      <window_info content_ui="combo" id="Project" order="1" sideWeight="0.49675325" visible="true" weight="0.18489583" />
+      <window_info id="Structure" order="2" sideWeight="0.5032467" side_tool="true" visible="true" weight="0.18489583" />
       <window_info id="Favorites" order="3" side_tool="true" />
       <window_info id="Build Variants" order="4" side_tool="true" />
       <window_info id="Image Layers" order="5" />
@@ -369,7 +362,7 @@
       <window_info id="Resources Explorer" order="7" />
       <window_info id="Capture Tool" order="8" />
       <window_info anchor="bottom" id="Version Control" order="0" />
-      <window_info active="true" anchor="bottom" id="Logcat" order="1" visible="true" weight="0.40486258" />
+      <window_info active="true" anchor="bottom" id="Logcat" order="1" visible="true" weight="0.6744186" />
       <window_info anchor="bottom" id="TODO" order="2" weight="0.22621565" />
       <window_info anchor="bottom" id="Terminal" order="3" weight="0.32980973" />
       <window_info anchor="bottom" id="Event Log" order="4" side_tool="true" />
@@ -391,55 +384,55 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>309</line>
+          <line>313</line>
           <properties />
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>207</line>
+          <line>211</line>
           <properties />
           <option name="timeStamp" value="16" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>203</line>
+          <line>207</line>
           <properties />
           <option name="timeStamp" value="30" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>245</line>
+          <line>249</line>
           <properties />
           <option name="timeStamp" value="31" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>530</line>
+          <line>535</line>
           <properties />
           <option name="timeStamp" value="32" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>545</line>
+          <line>550</line>
           <properties />
           <option name="timeStamp" value="33" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>185</line>
+          <line>189</line>
           <properties />
           <option name="timeStamp" value="34" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>418</line>
+          <line>423</line>
           <properties />
           <option name="timeStamp" value="35" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java</url>
-          <line>146</line>
+          <line>150</line>
           <properties />
           <option name="timeStamp" value="36" />
         </line-breakpoint>
@@ -525,13 +518,6 @@
             <element signature="e#4525#4526#0" expanded="true" />
             <element signature="e#4567#4568#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="69" selection-start-line="6" selection-start-column="69" selection-end-line="6" selection-end-column="69" />
         </state>
       </provider>
     </entry>
@@ -774,10 +760,17 @@
       </provider>
       <provider editor-type-id="android-designer2" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/utils/Constants.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="51" selection-start-line="10" selection-start-column="31" selection-end-line="10" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/mumbojumbo/mapsandnav/MapFragment.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="279">
-          <caret line="189" column="106" selection-start-line="189" selection-start-column="106" selection-end-line="189" selection-end-column="106" />
+        <state relative-caret-position="92">
+          <caret line="331" column="12" selection-start-line="331" selection-start-column="12" selection-end-line="331" selection-end-column="12" />
           <folding>
             <element signature="e#7128#7167#0" expanded="true" />
             <element signature="e#7255#7294#0" expanded="true" />
