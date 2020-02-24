@@ -30,10 +30,13 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
     private static final String TAG="MainActivity";
     private boolean mLocationPermissionGranted;
     private MapFragment mMapFragment;
+    private boolean mFragmentResotred;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
+        if(savedInstanceState!=null) mFragmentResotred=true;
         mMapFragment =  MapFragment.newInstance(null,null,this);
 
     }
@@ -47,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         }else{
             Log.d(TAG,"Permission not accounted for.");
             getLocationPermission();
-            if(mLocationPermissionGranted) {
+            if(mLocationPermissionGranted && !mFragmentResotred) {
                 initMapFragment();
             }
         }
@@ -159,5 +162,4 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
 //TODO Internet Connectivity check
 //TODO Config change handling
 // TODO Navigation
-// TODO Display search location info
-// TODO Display Route Metadat (distance, time, etc)
+

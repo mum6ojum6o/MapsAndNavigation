@@ -1,5 +1,8 @@
 package com.mumbojumbo.mapsandnav.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.android.gms.maps.model.Polyline;
 import com.google.maps.model.DirectionsLeg;
 

@@ -96,6 +96,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private String mSearchedAddress;
     private Marker mMarker;
     private List<PolylineData> mPolyLineData = new ArrayList<>();
+    private boolean restoreState;
+    private boolean routesRequested;
     public MapFragment(OnFragmentInteractionListener aContext) {
         // Required empty public constructor
         this.mListener = aContext;
@@ -178,6 +180,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        super.onCreateView(inflater,container,savedInstanceState);
         View view = inflater.inflate(R.layout.map_fragment,container,false);
         mMapView = view.findViewById(R.id.mv_map_view);
         mFloatingActionButton = view.findViewById(R.id.floating_action_button);
@@ -194,11 +197,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         Bundle bundle = null;
         if(savedInstanceState!=null){
             bundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
+            restoreState(savedInstanceState);
         }
         mMapView.onCreate(bundle);
         mMapView.getMapAsync(this);
         if(mGeoApiContext==null){
-            Log.d(TAG,"maps_key:"+getString(R.string.GOOGLE_MAPS_API_KEY));
+            Log.d(TAG,"test maps_key:"+getString(R.string.GOOGLE_MAPS_API_KEY));
             mGeoApiContext = new GeoApiContext.Builder()
                     .apiKey(getString(R.string.GOOGLE_MAPS_API_KEY))
                     .build();
@@ -232,9 +236,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mGoogleMap = googleMap;
         googleMap.setMyLocationEnabled(true);
-        getlastKnownLocation();
+
         mGoogleMap.setOnPolylineClickListener(this);
         initSearchEditText();
+        if(restoreState){
+            //getlastKnownLocation();
+            searchEnteredLocation();
+            if(routesRequested){
+                onClick(mDirectionsFloatingActionButton);
+            }
+        }else{
+            getlastKnownLocation();
+        }
     }
 
     private void getlastKnownLocation(){
@@ -283,6 +296,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             case R.id.floating_action_button:
                 resetMap();
                 //mSearchedAddressInfo.setVisibility(View.INVISIBLE);
+                mDestinationAddress=null;
+                routesRequested=false;
+                restoreState=false;
                 setCameraView(mUsersLastKnownLocation.getLatitude(),
                         mUsersLastKnownLocation.getLongitude(),false);
                 break;
@@ -292,6 +308,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 LatLng from = new LatLng(mUsersLastKnownLocation.getLatitude()
                         ,mUsersLastKnownLocation.getLongitude());
                 LatLng to = new LatLng(mDestinationAddress.getLatitude(),mDestinationAddress.getLongitude());
+
                 processDirections(from,to);
                 break;
         }
@@ -428,9 +445,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 if(mDestinationAddress!=null){
                     mMarker = mGoogleMap.addMarker(new MarkerOptions()
                             .position(new LatLng(mDestinationAddress.getLatitude(),
-                                    mDestinationAddress.getLongitude())).title(mDestinationAddress.getAddressLine(0)));
+                                    mDestinationAddress.getLongitude())).title(mDestinationAddress
+                                    .getAddressLine(0)));
                     mMarker.showInfoWindow();
-
                 }
                 double minTripDuration = Double.MAX_VALUE;
                 for(DirectionsRoute route:result.routes){
@@ -446,15 +463,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
 
 
                     mPolyLineData.add(new PolylineData(polyline,route.legs[0]));
-                    calculateMapBoundary();
-                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
-                            mMapBoundary,0));
+                    calculateMapBoundary(polyline.getPoints());
+
 
                     if(minTripDuration> route.legs[0].duration.inSeconds){
                         minTripDuration = route.legs[0].duration.inSeconds;
                         onPolylineClick(polyline);
                         mMarker.setSnippet("Duration:"+ route.legs[0].duration.humanReadable);
                         mMarker.showInfoWindow();
+                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
+                                mMapBoundary,75));
                     }
 
 
@@ -463,41 +481,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             }
         });
     }
-    //TODO - calculcate the boundary to calculate better boundary.
-    private void  calculateMapBoundary(){
-        if(mUsersLastKnownLocation==null||mDestinationAddress==null)
-            return;
 
-        double latDiff = Math.abs(mUsersLastKnownLocation.getLatitude() - mDestinationAddress.getLatitude());
-        double longDiff = Math.abs(mUsersLastKnownLocation.getLongitude()-mDestinationAddress.getLongitude());
-        double stretcher = Math.max(latDiff,longDiff);
+    //method to calculate the method boundaries depending on the latlng bounds of the polyline
+    private void  calculateMapBoundary(List<LatLng> latlngRoutePath){
+        if(mGoogleMap==null||latlngRoutePath==null||latlngRoutePath.isEmpty()) return;
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+        for (LatLng latLngPoint : latlngRoutePath)
+            boundsBuilder.include(latLngPoint);
 
-
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        builder.include(new LatLng(mUsersLastKnownLocation.getLatitude()-(stretcher/4),
-                mUsersLastKnownLocation.getLongitude()-(stretcher/4)))
-        .include(new LatLng(mDestinationAddress.getLatitude()+(stretcher/2),
-                mDestinationAddress.getLongitude()+(stretcher/2)));
-        mMapBoundary = builder.build();
-
+        int routePadding = 50;
+        mMapBoundary = boundsBuilder.build();
     }
 
-    /*private void setSearchAddressInfo(){
-        RelativeLayout rl = getActivity().findViewById(R.id.rl_search_address_info_layout);
-        rl.setVisibility(View.VISIBLE);
-        TextView searchInfo = getActivity().findViewById(R.id.tv_destination_info);
-        StringBuilder sb = new StringBuilder();
-        sb.append(mDestinationAddress.getSubThoroughfare()!=null?mDestinationAddress.getSubThoroughfare()+" ":"");
-        sb.append(mDestinationAddress.getThoroughfare()!=null?mDestinationAddress.getThoroughfare()+", ":"");
-        sb.append(mDestinationAddress.getLocality()!=null?mDestinationAddress.getLocality()+", ":"");
-        sb.append(mDestinationAddress.getAdminArea()!=null?mDestinationAddress.getAdminArea()+", ":"");
-        sb.append(mDestinationAddress.getPostalCode()!=null?" - "+ mDestinationAddress.getPostalCode()+", ":"");
-        sb.append(mDestinationAddress.getCountryName());
-        searchInfo.setText(sb.toString());
-    }*/
 
 
-    //TODO - determine why is the alert dialog not rendering???
+
+    //method to render alrtdialog in case no routes are possible.
     private void displayNoPossibleRoutesDialog(){
         new Handler(Looper.getMainLooper()).post(new Runnable(){
 
@@ -518,4 +517,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         });
 
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle bundle){
+        super.onSaveInstanceState(bundle);
+        if(mDestinationAddress!=null)
+            bundle.putParcelable("Destination Address",mDestinationAddress);
+        if(mSearchEditText.getText()!=null && !mSearchEditText.getText().toString().isEmpty())
+            bundle.putString("User_Entered_Address",mSearchEditText.getText().toString());
+        if(mPolyLineData.size()>0) {
+            //bundle.putParcelableArrayList("PolyLineData",mPolyLineData);
+            bundle.putBoolean("Routes_Requested",true);
+        }
+        if(mUsersLastKnownLocation!=null){
+            bundle.putParcelable("Last_Known_Location",mUsersLastKnownLocation);
+        }
+
+    }
+    private void restoreState(Bundle savedInstanceState){
+        Address address = savedInstanceState.getParcelable("Destination Address");
+        mDestinationAddress = address;
+
+        mUsersLastKnownLocation = savedInstanceState.getParcelable("Last_Known_Location");
+        if(mDestinationAddress!=null) restoreState=true;
+        String text = savedInstanceState.getString("User_Entered_Address");
+        mSearchEditText.setText(text);
+        boolean routesRequested = savedInstanceState.getBoolean("Routes_Requested");
+        this.routesRequested = routesRequested;
+    }
+
+
 }
