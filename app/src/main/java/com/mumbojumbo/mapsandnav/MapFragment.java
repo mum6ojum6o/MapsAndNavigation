@@ -60,6 +60,9 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 import static com.mumbojumbo.mapsandnav.utils.Constants.DESTINATION_ADDRESS_KEY;
 import static com.mumbojumbo.mapsandnav.utils.Constants.LAST_KNOWN_LOCATION_KEY;
 import static com.mumbojumbo.mapsandnav.utils.Constants.MAPVIEW_BUNDLE_KEY;
@@ -87,27 +90,20 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     //using this object we can set the boundary of the map displayed onscreen
     private LatLngBounds mMapBoundary;
     private Location mUsersLastKnownLocation;
-    //private boolean mLocationPermissionGranted;
-    private EditText mSearchEditText;
-    //private RelativeLayout mSearchedAddressInfo;
-    private String mParam1;
-    private String mParam2;
-    private FloatingActionButton mFloatingActionButton;
-    private FloatingActionButton mDirectionsFloatingActionButton;
-    private FloatingActionButton mNavigationFloatingActionButton;
-    private MapView mMapView;
+    @BindView(R.id.et_search) EditText mSearchEditText;
+    @BindView(R.id.floating_action_button) FloatingActionButton mFloatingActionButton;
+    @BindView(R.id.floating_action_button_directions) FloatingActionButton mDirectionsFloatingActionButton;
+    @BindView(R.id.floating_action_button_start_navigation) FloatingActionButton mNavigationFloatingActionButton;
+    @BindView(R.id.mv_map_view) MapView mMapView;
     private Address mDestinationAddress;
-    private OnFragmentInteractionListener mListener;
+
     private GeoApiContext mGeoApiContext;
     private String mSearchedAddress;
     private Marker mMarker;
     private List<PolylineData> mPolyLineData = new ArrayList<>();
     private boolean restoreState;
     private boolean routesRequested;
-    public MapFragment(OnFragmentInteractionListener aContext) {
-        // Required empty public constructor
-        this.mListener = aContext;
-    }
+
     public MapFragment(){
 
     }
@@ -115,17 +111,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     *
      * @return A new instance of fragment MapFragment.
      */
 
-    public static MapFragment newInstance(String param1, String param2,OnFragmentInteractionListener listener) {
-        MapFragment fragment = new MapFragment(listener);
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+    public static MapFragment newInstance( ) {
+        MapFragment fragment = new MapFragment();
         return fragment;
     }
 
@@ -133,10 +124,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
         mFusedLocationProvider = LocationServices.getFusedLocationProviderClient(getActivity());
     }
 
@@ -188,11 +175,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                              Bundle savedInstanceState) {
         super.onCreateView(inflater,container,savedInstanceState);
         View view = inflater.inflate(R.layout.map_fragment,container,false);
-        mMapView = view.findViewById(R.id.mv_map_view);
-        mFloatingActionButton = view.findViewById(R.id.floating_action_button);
-        mDirectionsFloatingActionButton = view.findViewById(R.id.floating_action_button_directions);
-        mNavigationFloatingActionButton = view.findViewById(R.id.floating_action_button_start_navigation);
-        mSearchEditText = view.findViewById(R.id.et_search);
+        ButterKnife.bind(this,view);
         initiateGoogleMaps(savedInstanceState);
         mFloatingActionButton.setOnClickListener(this);
         mDirectionsFloatingActionButton.setOnClickListener(this);
@@ -210,34 +193,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         mMapView.onCreate(bundle);
         mMapView.getMapAsync(this);
         if(mGeoApiContext==null){
-            Log.d(TAG,"test maps_key:"+getString(R.string.GOOGLE_MAPS_API_KEY));
+
             mGeoApiContext = new GeoApiContext.Builder()
                     .apiKey(getString(R.string.GOOGLE_MAPS_API_KEY))
                     .build();
         }
     }
 
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+
     }
 
     @Override
@@ -267,8 +239,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 if(task.isSuccessful()){
                     Location location = task.getResult();
                     mUsersLastKnownLocation = location;
-                    Log.d(TAG, "getLastKnownLocation -> onComplete: Latitude:"+location.getLatitude());
-                    Log.d(TAG, "getLastKnownLocation -> onComplete: Longiude:"+location.getLongitude());
                     setCameraView(mUsersLastKnownLocation.getLatitude(),mUsersLastKnownLocation.getLongitude(),false );
 
                 }
@@ -329,7 +299,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         mSearchEditText.setText("");
         mGoogleMap.clear();
         if(mMarker!=null)
-            mMarker.remove();
+             mMarker.remove();
 
     }
 
@@ -350,21 +320,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         }
     }
 
-
-    /********
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
-    }
 
     private void initSearchEditText(){
 
@@ -442,6 +397,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
             setCameraView(latitude,longitude,true);
         }
     }
+
+    //Refactor this method.
     private void addRouteLines(final DirectionsResult result ){
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @SuppressLint("RestrictedApi")
@@ -462,37 +419,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                                     .getAddressLine(0)));
                     mMarker.showInfoWindow();
                 }
-                double minTripDuration = Double.MAX_VALUE;
-                for(DirectionsRoute route:result.routes){
-                    Log.d(TAG,"addRouteLines->run():"+route.legs[0].toString());
-                    List<com.google.maps.model.LatLng> path = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
-                    List<LatLng> decodedPath = new ArrayList<>();
-                    for(com.google.maps.model.LatLng coords:path){
-                        decodedPath.add(new LatLng(coords.lat,coords.lng));
-                    }
-                    Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(decodedPath));
-                    polyline.setColor(ContextCompat.getColor(getActivity(),R.color.darkGrey));
-                    polyline.setClickable(true);
-
-
-                    mPolyLineData.add(new PolylineData(polyline,route.legs[0]));
-                    calculateMapBoundary(polyline.getPoints());
-
-
-                    if(minTripDuration> route.legs[0].duration.inSeconds){
-                        minTripDuration = route.legs[0].duration.inSeconds;
-                        onPolylineClick(polyline);
-                        mMarker.setSnippet("Duration:"+ route.legs[0].duration.humanReadable);
-                        mMarker.showInfoWindow();
-                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
-                                mMapBoundary,75));
-                    }
-
-
-                }
-
+                addPolyLinesToMap(result.routes);
             }
         });
+    }
+
+
+    private void addPolyLinesToMap(DirectionsRoute[] routes){
+        double minTripDuration= Double.MAX_VALUE;
+        for(DirectionsRoute route:routes){
+            Log.d(TAG,"addRouteLines->run():"+route.legs[0].toString());
+            List<com.google.maps.model.LatLng> path = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+            List<LatLng> decodedPath = new ArrayList<>();
+            for(com.google.maps.model.LatLng coords:path){
+                decodedPath.add(new LatLng(coords.lat,coords.lng));
+            }
+            Polyline polyline = mGoogleMap.addPolyline(new PolylineOptions().addAll(decodedPath));
+            polyline.setColor(ContextCompat.getColor(getActivity(),R.color.darkGrey));
+            polyline.setClickable(true);
+            mPolyLineData.add(new PolylineData(polyline,route.legs[0]));
+            calculateMapBoundary(polyline.getPoints());
+            if(minTripDuration> route.legs[0].duration.inSeconds){
+                minTripDuration = route.legs[0].duration.inSeconds;
+                onPolylineClick(polyline);
+                mMarker.setSnippet("Duration:"+ route.legs[0].duration.humanReadable);
+                mMarker.showInfoWindow();
+                mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(
+                        mMapBoundary,75));
+            }
+        }
     }
 
     //method to calculate the method boundaries depending on the latlng bounds of the polyline

@@ -26,7 +26,7 @@ import static com.mumbojumbo.mapsandnav.utils.Constants.ERROR_DIALOG_MSG;
 import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ACCESS_FINE_LOCATION;
 import static com.mumbojumbo.mapsandnav.utils.Constants.PERMISSIONS_ENABLE_GPS;
 
-public class MainActivity extends AppCompatActivity implements MapFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity {
     private static final String TAG="MainActivity";
     private boolean mLocationPermissionGranted;
     private MapFragment mMapFragment;
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
 
         setContentView(R.layout.activity_main);
         if(savedInstanceState!=null) mFragmentResotred=true;
-        mMapFragment =  MapFragment.newInstance(null,null,this);
+        mMapFragment =  MapFragment.newInstance();
 
     }
     @Override
@@ -153,11 +153,6 @@ public class MainActivity extends AppCompatActivity implements MapFragment.OnFra
         }
     }
 
-
-    @Override
-    public void onFragmentInteraction(Uri uri) {
-
-    }
 }
 //TODO Internet Connectivity check
 //TODO Config change handling
