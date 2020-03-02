@@ -14,9 +14,13 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -54,6 +58,7 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 import com.mumbojumbo.mapsandnav.model.PolylineData;
+import com.mumbojumbo.mapsandnav.viewmodels.LocationsViewModel;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -85,11 +90,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "MapFragment";
-    private FusedLocationProviderClient mFusedLocationProvider;
+    //private FusedLocationProviderClient mFusedLocationProvider;
     private GoogleMap mGoogleMap;
     //using this object we can set the boundary of the map displayed onscreen
     private LatLngBounds mMapBoundary;
     private Location mUsersLastKnownLocation;
+    private LocationsViewModel mLocationViewModel;
     @BindView(R.id.et_search) EditText mSearchEditText;
     @BindView(R.id.floating_action_button) FloatingActionButton mFloatingActionButton;
     @BindView(R.id.floating_action_button_directions) FloatingActionButton mDirectionsFloatingActionButton;
@@ -124,7 +130,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mFusedLocationProvider = LocationServices.getFusedLocationProviderClient(getActivity());
     }
 
     @Override
@@ -177,6 +182,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
         View view = inflater.inflate(R.layout.map_fragment,container,false);
         ButterKnife.bind(this,view);
         initiateGoogleMaps(savedInstanceState);
+        mLocationViewModel = new ViewModelProvider(this) .get(LocationsViewModel.class);
         mFloatingActionButton.setOnClickListener(this);
         mDirectionsFloatingActionButton.setOnClickListener(this);
         mFloatingActionButton.setOnClickListener(this);
@@ -226,24 +232,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                 onClick(mDirectionsFloatingActionButton);
             }
         }else{
-            getlastKnownLocation();
+            mLocationViewModel.getDevicesLastKnownLocation(getActivity()).observe(this, new Observer<Location>(){
+                    @Override
+                    public void onChanged(@Nullable final Location location){
+                        if(location !=null){
+                            setLocation(location);
+                        }
+                        else{
+                            Toast.makeText(getContext(),"Location could not be found!!!",Toast.LENGTH_LONG).show();
+                        }
+                    }
+            });
         }
     }
 
-    private void getlastKnownLocation(){
-        Log.d(TAG,"Inside getLastKnownLocation ");
-
-        mFusedLocationProvider.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if(task.isSuccessful()){
-                    Location location = task.getResult();
-                    mUsersLastKnownLocation = location;
-                    setCameraView(mUsersLastKnownLocation.getLatitude(),mUsersLastKnownLocation.getLongitude(),false );
-
-                }
-            }
-        });
+    private void setLocation(Location location){
+        mUsersLastKnownLocation = location;
+        setCameraView(mUsersLastKnownLocation.getLatitude(),mUsersLastKnownLocation.getLongitude(),false );
     }
 
     @SuppressLint("RestrictedApi")
@@ -322,7 +327,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
 
 
     private void initSearchEditText(){
-
         mSearchEditText.setRawInputType(InputType.TYPE_CLASS_TEXT);
         mSearchEditText.setImeOptions(EditorInfo.IME_ACTION_GO);
         mSearchEditText.setOnEditorActionListener(new EditText.OnEditorActionListener() {
@@ -333,7 +337,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
                      //execute search
                     mGoogleMap.clear();
                     //mSearchedAddressInfo.setVisibility(View.INVISIBLE);
-                    searchEnteredLocation();
+                    //searchEnteredLocation();
+                    searchRequestedAddress();
                 }
                 return false;
             }
@@ -342,37 +347,43 @@ public class MapFragment extends Fragment implements OnMapReadyCallback
 
 
     private void processDirections(LatLng from,LatLng to){
-        Log.d(TAG," process Directions: processing Directions");
-        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
-        directions.alternatives(true);
-        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(to.latitude,to.longitude);
-        directions.origin(new com.google.maps.model.LatLng(
-                from.latitude,
-                from.longitude
-        ));
-        Log.d(TAG,"calculating Directions to destination"+to.latitude +" "+ to.longitude);
-        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
+        mLocationViewModel.processDirections(getContext(),from,to).observe(this, new Observer<DirectionsResult>() {
             @Override
-            public void onResult(DirectionsResult result) {
-                if( result.routes==null|| result.routes.length==0){
-//                    Toast.makeText(getContext(),"Sorry! No route possible by Land!", Toast.LENGTH_LONG).show();
+            public void onChanged(DirectionsResult directionsResult) {
+                if(directionsResult==null||
+                        directionsResult.routes==null||
+                        directionsResult.routes.length==0){
+                    Log.d(TAG,"No routes!!!");
                     displayNoPossibleRoutesDialog();
-
                     return;
                 }
-                Log.d(TAG, "processing Direction: routes:"+result.routes[0].toString());
-                Log.d(TAG, "processing Direction: duration:"+result.routes[0].legs[0].duration);
-                Log.d(TAG, "processing Direction: duration:"+result.routes[0].legs[0].distance);
-                Log.d(TAG, "processing Direction: waypoints:"+result.geocodedWaypoints[0].toString());
-                addRouteLines(result);
-
-            }
-
-            @Override
-            public void onFailure(Throwable e) {
-                Log.e(TAG,"calculate Directions: Unable to get Directions"+e.getMessage());
+                Log.d(TAG, "processing Direction: routes:"+directionsResult.routes[0].toString());
+                Log.d(TAG, "processing Direction: duration:"+directionsResult.routes[0].legs[0].duration);
+                Log.d(TAG, "processing Direction: duration:"+directionsResult.routes[0].legs[0].distance);
+                Log.d(TAG, "processing Direction: waypoints:"+directionsResult.geocodedWaypoints[0].toString());
+                addRouteLines(directionsResult);
             }
         });
+
+    }
+
+    private void searchRequestedAddress(){
+        String searchString  = mSearchEditText.getText().toString();
+        if(searchString==null||searchString.isEmpty()||searchString.trim().isEmpty()) {
+            Toast.makeText(getActivity(), "Please enter an Address", Toast.LENGTH_LONG).show();
+            return;
+        }
+        mLocationViewModel.searchAddress(getActivity(),searchString).observe(this,new Observer<Address>(){
+
+            @Override
+            public void onChanged(Address address) {
+                if(address!=null){
+                    mDestinationAddress = address;
+                    setCameraView(mDestinationAddress.getLatitude(),mDestinationAddress.getLongitude(),true);
+                }
+            }
+        });
+
     }
 
     private void searchEnteredLocation(){
